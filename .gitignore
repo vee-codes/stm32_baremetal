@@ -53,5 +53,8 @@ dkms.conf
 
 # stm32 specific
 .metadata/
-.*
-/.*
+.settings/
+Debug/
+debug/
+Release/
+release
