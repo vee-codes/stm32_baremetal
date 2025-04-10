@@ -1,0 +1,9 @@
+// On-board LEDs
+
+// LD1,2,3
+// green PB0 (SB120 ON and SB119 OFF) or PA5 (SB119 ON and SB120 OFF)
+// blue PB7
+// red PB14
+
+
+#define PERIPH_END (0x4000_0000UL)
