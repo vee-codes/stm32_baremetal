@@ -38,6 +38,7 @@ int main(void) {
 		GPIOB->BSRR = LED_ON(LD2_PIN);
 		GPIOB->BSRR = LED_ON(LD3_PIN);
 		delay_ms(1000);
+
 		GPIOB->BSRR = LED_OFF(LD1_PIN);
 		GPIOB->BSRR = LED_OFF(LD2_PIN);
 		GPIOB->BSRR = LED_OFF(LD3_PIN);
