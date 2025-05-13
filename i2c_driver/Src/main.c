@@ -20,6 +20,10 @@ void delay_ms(int delay);
 void systick_config(uint32_t ticks_ms, uint32_t clock_speed);
 void i2c1_init(void);
 void i2c1_read_byte(char saddr, char reg_addr, char *data);
+//
+void UART3_Init(void);
+void UART3_SendChar(char c);
+void UART3_SendString(const char *str);
 
 int main(void) {
 
@@ -34,6 +38,7 @@ int main(void) {
 	GPIOB->MODER &=~(1U<<15);
 	GPIOB->MODER |= (1U<<28); //pin14 28-29
 	systick_config(1,SYS_CLK); // use 1ms ticks
+	UART3_Init();
 	while(1){
 		// Turn on the LEDs
 		GPIOB->BSRR = LED_ON(LD1_PIN);
@@ -50,6 +55,10 @@ int main(void) {
 		char measurement;
 		i2c1_read_byte(MPU_6050_ADDR, ACCEL_REG, &measurement);
 		printf("%d",measurement);
+
+
+		UART3_SendString("Hello, UART!\r\n");
+
 	}
 }
 
@@ -125,4 +134,30 @@ void i2c1_read_byte(char saddr, char reg_addr, char *data){
 	//
 	*data++ = I2C1->RXDR;
 
+	I2C2->CR2 |= (1UL<<I2C_CR2_STOP_Pos);
 }
+
+void UART3_Init(void) {
+    // 1. Enable clocks
+    RCC->APB1ENR |= RCC_APB1ENR_USART3EN;  // USART3 clock
+    RCC->AHB1ENR |= RCC_AHB1ENR_GPIODEN;    // GPIOD clock (PD8=TX, PD9=RX)
+
+    // 2. Configure GPIO (Alternate Function AF7 for USART3)
+    GPIOD->MODER &= ~(GPIO_MODER_MODER8 | GPIO_MODER_MODER9);  // Clear bits
+    GPIOD->MODER |= (2UL << GPIO_MODER_MODER8_Pos) | (2UL << GPIO_MODER_MODER9_Pos);  // AF mode
+    GPIOD->AFR[1] |= (7UL << (0 * 4)) | (7UL << (1 * 4));      // AF7 (USART3)
+
+    // 3. Configure USART3
+    USART3->BRR = (16000000 / 115200);  // 16MHz PCLK1, 115200 baud
+    USART3->CR1 = USART_CR1_TE | USART_CR1_UE;  // Enable TX, USART
+}
+
+void UART3_SendChar(char c) {
+    while (!(USART3->ISR & USART_ISR_TXE));  // Wait for TX buffer empty
+    USART3->TDR = c;
+}
+
+void UART3_SendString(const char *str) {
+    while (*str) UART3_SendChar(*str++);
+}
+
