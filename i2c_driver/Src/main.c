@@ -94,7 +94,7 @@ int main(void){
 
 	while(1){
 		// Turn on the LEDs
-		GPIOB->BSRR = LED_ON(LD1_PIN);
+	    GPIOB->BSRR = LED_ON(LD1_PIN);
 		GPIOB->BSRR = LED_ON(LD2_PIN);
 		GPIOB->BSRR = LED_ON(LD3_PIN);
 		MPU6050_ReadAccel(accel_raw);
@@ -173,7 +173,7 @@ void i2c1_read_byte(uint8_t saddr, uint8_t reg_addr, uint8_t *data, size_t num_b
 	 */
 	// wait until busy flag is clear
 	while(I2C1->ISR & I2C_ISR_BUSY);
-    // Wait until RXNE flag is set (data received)
+
 	// 0 for writes, 1 for reads
 	I2C1->CR2 = (saddr<<1);
 	I2C1->CR2 &= ~I2C_CR2_ADD10;
@@ -182,9 +182,10 @@ void i2c1_read_byte(uint8_t saddr, uint8_t reg_addr, uint8_t *data, size_t num_b
 	while(!(I2C1->ISR & I2C_ISR_TXE));
 	I2C1->TXDR = reg_addr;
 	I2C1->CR2 |= I2C_CR2_START;
+	// Wait until transfer is complete
 	while(!(I2C1->ISR & I2C_ISR_TC));
-	// Set to read mode
 	while(I2C1->CR2 & I2C_CR2_START);
+	// Set to read mode
 	I2C1->CR2 = (saddr << 1) | (num_bytes << I2C_CR2_NBYTES_Pos) | (1 << I2C_CR2_RD_WRN_Pos);
 	I2C1->CR2 |= I2C_CR2_START;
 
@@ -192,7 +193,7 @@ void i2c1_read_byte(uint8_t saddr, uint8_t reg_addr, uint8_t *data, size_t num_b
 	    while(!(I2C1->ISR & I2C_ISR_RXNE));  // Wait for RX buffer
 	    data[i] = I2C1->RXDR;  // Store received byte
 	}
-
+	// set stop after transfer complete then clear the flag
 	while(!(I2C1->ISR & I2C_ISR_TC));
 	I2C1->CR2 |= I2C_CR2_STOP;
 	while(!(I2C1->ISR & I2C_ISR_STOPF));
@@ -205,7 +206,6 @@ void i2c1_write_byte(uint8_t saddr, uint8_t reg_addr, uint8_t data, size_t num_b
 	 * Writes to a register of the i2c device
 	 */
 	while(I2C1->ISR & I2C_ISR_BUSY);
-	// Wait until RXNE flag is set (data received)
 	// 0 for writes, 1 for reads
 	I2C1->CR2 = (saddr<<1);
 	I2C1->CR2 &= ~I2C_CR2_ADD10;
@@ -214,10 +214,10 @@ void i2c1_write_byte(uint8_t saddr, uint8_t reg_addr, uint8_t data, size_t num_b
 	while(!(I2C1->ISR & I2C_ISR_TXE));
 	I2C1->TXDR = reg_addr;
 	I2C1->CR2 |= I2C_CR2_START;
-
+	// Send data when the register is empty
 	while(!(I2C1->ISR & I2C_ISR_TXE));
 	I2C1->TXDR = data;
-	// Wait until the transfer is complete
+	// Set stop after transfer complete then clear the flag
 	while(!(I2C1->ISR & I2C_ISR_TC));
 	I2C1->CR2 |= I2C_CR2_STOP;
 	while(!(I2C1->ISR & I2C_ISR_STOPF));
@@ -252,7 +252,7 @@ void UART3_SendString(const char *str){
     while(*str) UART3_SendChar(*str++);
 }
 
-void mpu_init(uint8_t *ptr){
+void mpu_init(){
 	// reset the mpu and wake it up
 	uint8_t init_data = 0;
 	i2c1_write_byte(MPU_6050_ADDR, PWR_MGMT_1, init_data, 2);
