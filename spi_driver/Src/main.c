@@ -54,11 +54,17 @@ int main(void){
 	UART3_SendString("Starting up...");
 	systick_config(1,SYS_CLK); // use 1ms ticks
 	UART3_Init();
+	spi_init(SPI1);
 	delay_ms(1000);
 	UART3_SendString("Initialized Peripherals");
 
+	test_leds();
+	delay_ms(1000);
+
+
 	while(1){
 		// Turn on the LEDs
+	    spi_send_msg(MAX7219_DISPLAY_TEST, 0x01UL);
 	    GPIOB->BSRR = LED_ON(LD1_PIN);
 		GPIOB->BSRR = LED_ON(LD2_PIN);
 		GPIOB->BSRR = LED_ON(LD3_PIN);
@@ -66,7 +72,9 @@ int main(void){
 		GPIOB->BSRR = LED_OFF(LD1_PIN);
 		GPIOB->BSRR = LED_OFF(LD2_PIN);
 		GPIOB->BSRR = LED_OFF(LD3_PIN);
+		spi_send_msg(MAX7219_DISPLAY_TEST, 0x00UL);
 		delay_ms(600);
+
 	}
 }
 
