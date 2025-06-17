@@ -59,12 +59,13 @@ int main(void){
 	UART3_SendString("Initialized Peripherals");
 
 	test_leds();
+	spi_send_msg(MAX7219_DISPLAY_TEST, 0x01UL);
 	delay_ms(1000);
-
+	spi_send_msg(MAX7219_DISPLAY_TEST, 0x00UL);
 
 	while(1){
 		// Turn on the LEDs
-	    spi_send_msg(MAX7219_DISPLAY_TEST, 0x01UL);
+
 	    GPIOB->BSRR = LED_ON(LD1_PIN);
 		GPIOB->BSRR = LED_ON(LD2_PIN);
 		GPIOB->BSRR = LED_ON(LD3_PIN);
@@ -72,9 +73,14 @@ int main(void){
 		GPIOB->BSRR = LED_OFF(LD1_PIN);
 		GPIOB->BSRR = LED_OFF(LD2_PIN);
 		GPIOB->BSRR = LED_OFF(LD3_PIN);
-		spi_send_msg(MAX7219_DISPLAY_TEST, 0x00UL);
 		delay_ms(600);
-
+		for(int i=1;i<9;i++){
+		    for(int j=0;j<8;j++){
+		        spi_send_msg(i, 1<<j);
+		        delay_ms(200);
+		        spi_send_msg(i,0x00);
+		    }
+		}
 	}
 }
 
