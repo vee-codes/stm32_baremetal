@@ -1,7 +1,9 @@
-void UART3_Init(){
-	/*
-	 * Initializes UART3 (USB) by setting applicaple GPIO to alternate function
-	 */
+#include "usart.h"
+
+void UART3_Init(int peripheral_clock, int baud_rate){
+    /*
+     * Initializes UART3 (USB) by setting applicaple GPIO to alternate function
+     */
     // Enable clocks
     RCC->APB1ENR |= RCC_APB1ENR_USART3EN;  // USART3 clock
     RCC->AHB1ENR |= RCC_AHB1ENR_GPIODEN;    // GPIOD clock (PD8=TX, PD9=RX)
@@ -12,6 +14,6 @@ void UART3_Init(){
     GPIOD->AFR[1] |= (7UL << (0 * 4)) | (7UL << (1 * 4));      // AF7 (USART3)
 
     // Configure USART3
-    USART3->BRR = (SYS_CLK/ BAUD_RATE);  // 16MHz PCLK1, 115200 baud
+    USART3->BRR = (peripheral_clock/ baud_rate);  // 16MHz PCLK1, 115200 baud
     USART3->CR1 = USART_CR1_TE | USART_CR1_UE;  // Enable TX, USART
 }

@@ -1,3 +1,6 @@
+#include "i2c.h"
+
+
 void i2c1_init(){
 	// GPIO
 	// Enable clock GPIOB

@@ -1,5 +1,6 @@
 #include <stdio.h>
-#include "max72xx.h"
+#include "systick.h"
+#include "common.h"
 /*//////////////
  Defines
 *///////////////
@@ -22,11 +23,6 @@
 /*//////////////
  Declarations
 *///////////////
-
-// systick
-void delay_ms(int delay);
-void systick_config(uint32_t ticks_ms, uint32_t clock_speed);
-//spi
 
 // uart
 void UART3_Init(void);
@@ -52,20 +48,14 @@ int main(void){
 	GPIOB->MODER |= (1U<<28); //pin14 28-29
 
 	UART3_SendString("Starting up...");
-	systick_config(1,SYS_CLK); // use 1ms ticks
+	systick_init(1,SYS_CLK); // use 1ms ticks
 	UART3_Init();
-	spi_init(SPI1);
 	delay_ms(1000);
 	UART3_SendString("Initialized Peripherals");
-
-	//test_leds();
-	spi_send_msg(MAX72XX_DISPLAY_TEST, 0x01UL);
 	delay_ms(1000);
-	spi_send_msg(MAX72XX_DISPLAY_TEST, 0x00UL);
 
 	while(1){
 		// Turn on the LEDs
-
 	    GPIOB->BSRR = LED_ON(LD1_PIN);
 		GPIOB->BSRR = LED_ON(LD2_PIN);
 		GPIOB->BSRR = LED_ON(LD3_PIN);
@@ -74,37 +64,7 @@ int main(void){
 		GPIOB->BSRR = LED_OFF(LD2_PIN);
 		GPIOB->BSRR = LED_OFF(LD3_PIN);
 		delay_ms(600);
-		for(int i=1;i<9;i++){
-		    for(int j=0;j<8;j++){
-		        spi_send_msg(i, 1<<j);
-		        delay_ms(200);
-		        spi_send_msg(i,0x00);
-		    }
-		}
 	}
-}
-
-void delay_ms(int delay){
-	for(int i = 0; i < delay; i++){
-		while(!(SysTick->CTRL & SysTick_CTRL_COUNTFLAG_Msk)){
-		}
-	}
-}
-
-void systick_config(uint32_t ticks_ms, uint32_t clock_speed){
-	uint32_t load_val = (ticks_ms * clock_speed / MS_TO_SEC)- 1U;
-
-	// clip to max valid value
-	if (load_val > SYS_LOAD_MAX){
-		load_val = SYS_LOAD_MAX;
-	}
-
-	SysTick->LOAD = load_val;
-	// Write to current value register clears field to 0
-	SysTick->VAL = 0;
-	// Enable and set to processor clock
-	SysTick->CTRL |= (SysTick_CTRL_CLKSOURCE_Msk | SysTick_CTRL_ENABLE_Msk);
-
 }
 
 void UART3_Init(void){

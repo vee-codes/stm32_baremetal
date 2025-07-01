@@ -1,6 +1,7 @@
-#ifndef USART_H_
-#define USART_H_
+#ifndef USART_H
+#define USART_H
+#include "stm32f7xx.h"
 
-void UART3_Init();
+void UART3_Init(int peripheral_clock, int baud_rate);
 
 #endif

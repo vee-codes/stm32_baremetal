@@ -1,4 +1,6 @@
-void systick_config(uint32_t ticks_ms, uint32_t clock_speed){
+#include "systick.h"
+
+void systick_init(uint32_t ticks_ms, uint32_t clock_speed){
 	uint32_t load_val = (ticks_ms * clock_speed / MS_TO_SEC)- 1U;
 
 	// clip to max valid value
